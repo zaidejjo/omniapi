@@ -1,0 +1,17 @@
+{
+  "name": "@omniapi/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "om": "./bin/om.ts"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir=dist --target=bun --format=esm",
+    "dev": "bun --watch ./src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@omniapi/core": "workspace:*",
+    "commander": "^15.0.0"
+  }
+}

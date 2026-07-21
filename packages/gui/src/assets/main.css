@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ── Default (Catppuccin Mocha) ───────────────────────── */
+  --color-surface: #18181b;
+  --color-surface-elevated: #1e1e22;
+  --color-surface-hover: #27272a;
+  --color-border: #27272a;
+  --color-border-light: #3f3f46;
+  --color-ring: #06b6d4;
+  --color-accent: #06b6d4;
+  --color-accent-hover: #22d3ee;
+  --color-bg: #09090b;
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-text-inverse: #09090b;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-destructive: #ef4444;
+  --color-info: #3b82f6;
+
+  /* HTTP Method badges */
+  --color-method-get: #06b6d4;
+  --color-method-get-bg: rgba(6, 182, 212, 0.12);
+  --color-method-post: #22c55e;
+  --color-method-post-bg: rgba(34, 197, 94, 0.12);
+  --color-method-put: #f97316;
+  --color-method-put-bg: rgba(249, 115, 22, 0.12);
+  --color-method-patch: #eab308;
+  --color-method-patch-bg: rgba(234, 179, 8, 0.12);
+  --color-method-delete: #ef4444;
+  --color-method-delete-bg: rgba(239, 68, 68, 0.12);
+  --color-method-head: #a855f7;
+  --color-method-head-bg: rgba(168, 85, 247, 0.12);
+  --color-method-options: #6366f1;
+  --color-method-options-bg: rgba(99, 102, 241, 0.12);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ── Theme: Catppuccin Mocha (default) ─────────────────── */
+[data-theme="catppuccin-mocha"] {
+  --color-surface: #1e1e2e;
+  --color-surface-elevated: #252538;
+  --color-surface-hover: #313244;
+  --color-border: #313244;
+  --color-border-light: #45475a;
+  --color-ring: #89b4fa;
+  --color-accent: #89b4fa;
+  --color-accent-hover: #b4d0fb;
+  --color-bg: #11111b;
+  --color-text-primary: #cdd6f4;
+  --color-text-secondary: #a6adc8;
+  --color-text-muted: #6c7086;
+  --color-success: #a6e3a1;
+  --color-warning: #f9e2af;
+  --color-destructive: #f38ba8;
+  --color-info: #89b4fa;
+}
+
+/* ── Theme: Tokyo Night ────────────────────────────────── */
+[data-theme="tokyo-night"] {
+  --color-surface: #1a1b26;
+  --color-surface-elevated: #232438;
+  --color-surface-hover: #2f3048;
+  --color-border: #2f3048;
+  --color-border-light: #44466a;
+  --color-ring: #7aa2f7;
+  --color-accent: #7aa2f7;
+  --color-accent-hover: #a8c0ff;
+  --color-bg: #0f0f1a;
+  --color-text-primary: #c0caf5;
+  --color-text-secondary: #a9b1d6;
+  --color-text-muted: #565f89;
+  --color-success: #9ece6a;
+  --color-warning: #e0af68;
+  --color-destructive: #f7768e;
+  --color-info: #7dcfff;
+}
+
+/* ── Theme: One Dark ───────────────────────────────────── */
+[data-theme="one-dark"] {
+  --color-surface: #282c34;
+  --color-surface-elevated: #2f333d;
+  --color-surface-hover: #353b45;
+  --color-border: #353b45;
+  --color-border-light: #4b5263;
+  --color-ring: #61afef;
+  --color-accent: #61afef;
+  --color-accent-hover: #8cc2f3;
+  --color-bg: #1e2127;
+  --color-text-primary: #abb2bf;
+  --color-text-secondary: #868d9a;
+  --color-text-muted: #5c6370;
+  --color-success: #98c379;
+  --color-warning: #e5c07b;
+  --color-destructive: #e06c75;
+  --color-info: #56b6c2;
+}
+
+/* ── Theme: Latte Light ────────────────────────────────── */
+[data-theme="latte-light"] {
+  --color-surface: #e6e9ef;
+  --color-surface-elevated: #eff1f5;
+  --color-surface-hover: #dce0e8;
+  --color-border: #ccd0da;
+  --color-border-light: #bcc0cc;
+  --color-ring: #1e66f5;
+  --color-accent: #1e66f5;
+  --color-accent-hover: #2d7bfa;
+  --color-bg: #eff1f5;
+  --color-text-primary: #1e1e2e;
+  --color-text-secondary: #4c4f69;
+  --color-text-muted: #6c6f85;
+  --color-text-inverse: #eff1f5;
+  --color-success: #40a02b;
+  --color-warning: #df8e1d;
+  --color-destructive: #d20f39;
+  --color-info: #1e66f5;
+}
+
+/* ── Base layer ─────────────────────────────────────────── */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background-color: var(--color-border); border-radius: 3px; }
+
+  html { color-scheme: dark; }
+  [data-theme="latte-light"] { color-scheme: light; }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-offset-2;
+    outline-color: transparent;
+    ring-color: var(--color-ring);
+    ring-offset-color: var(--color-bg);
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+    color: var(--color-text-primary);
+  }
+}
+
+/* ── Utility shortcuts ──────────────────────────────────── */
+@layer utilities {
+  .scrollable {
+    @apply overflow-y-auto;
+  }
+}
+
+/* ── JSON Syntax Highlighting ─────────────────────────── */
+[data-theme="catppuccin-mocha"] {
+  --json-key: #89b4fa; --json-string: #a6e3a1; --json-number: #fab387;
+  --json-boolean: #cba6f7; --json-null: #6c7086; --json-brace: #cdd6f4;
+  --json-colon: #585b70; --json-comma: #585b70;
+}
+[data-theme="tokyo-night"] {
+  --json-key: #7aa2f7; --json-string: #9ece6a; --json-number: #ff9e64;
+  --json-boolean: #bb9af7; --json-null: #565f89; --json-brace: #c0caf5;
+  --json-colon: #44466a; --json-comma: #44466a;
+}
+[data-theme="one-dark"] {
+  --json-key: #61afef; --json-string: #98c379; --json-number: #d19a66;
+  --json-boolean: #c678dd; --json-null: #5c6370; --json-brace: #abb2bf;
+  --json-colon: #4b5263; --json-comma: #4b5263;
+}
+[data-theme="latte-light"] {
+  --json-key: #1e66f5; --json-string: #40a02b; --json-number: #fe640b;
+  --json-boolean: #8839ef; --json-null: #9ca0b0; --json-brace: #1e1e2e;
+  --json-colon: #ccd0da; --json-comma: #ccd0da;
+}
+
+.json-key   { color: var(--json-key, #60a5fa); }
+.json-string { color: var(--json-string, #22c55e); }
+.json-number { color: var(--json-number, #f59e0b); }
+.json-boolean { color: var(--json-boolean, #a855f7); }
+.json-null  { color: var(--json-null, #a1a1aa); }
+.json-brace { color: var(--json-brace, #e4e4e7); }
+.json-colon { color: var(--json-colon, #71717a); }
+.json-comma { color: var(--json-comma, #71717a); }

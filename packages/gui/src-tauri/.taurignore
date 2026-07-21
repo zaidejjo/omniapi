@@ -1,0 +1,4 @@
+# SQLite database files — written frequently by core bridge, must not trigger rebuilds
+*.db
+*.db-shm
+*.db-wal

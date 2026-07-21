@@ -1,0 +1,18 @@
+{
+  "name": "@omniapi/tui",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "oma": "./bin/oma.ts"
+  },
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir=dist --target=bun --format=esm",
+    "start": "bun run bin/oma.ts",
+    "dev": "bun --watch bin/oma.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@omniapi/core": "workspace:*",
+    "neo-blessed": "^0.2.0"
+  }
+}

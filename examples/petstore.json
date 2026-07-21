@@ -1,0 +1,30 @@
+{
+  "collection": {
+    "name": "Petstore API",
+    "workspaceId": "default"
+  },
+  "requests": [
+    {
+      "id": "list-pets",
+      "name": "List Pets",
+      "method": "GET",
+      "url": "https://petstore.swagger.io/v2/pet/findByStatus?status=available",
+      "headers": [
+        { "key": "Accept", "value": "application/json", "enabled": true }
+      ],
+      "queryParams": [],
+      "auth": { "type": "none", "data": {} }
+    },
+    {
+      "id": "get-pet",
+      "name": "Get Pet by ID",
+      "method": "GET",
+      "url": "https://petstore.swagger.io/v2/pet/1",
+      "headers": [
+        { "key": "Accept", "value": "application/json", "enabled": true }
+      ],
+      "queryParams": [],
+      "auth": { "type": "none", "data": {} }
+    }
+  ]
+}

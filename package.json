@@ -1,0 +1,27 @@
+{
+  "name": "omniapi",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Blazing-fast API client — CLI, TUI, GUI",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "bun run --filter='*' build",
+    "build:core": "bun run --filter=@omniapi/core build",
+    "build:cli": "bun run --filter=@omniapi/cli build",
+    "build:tui": "bun run --filter=@omniapi/tui build",
+    "dev": "bun run --filter='*' dev",
+    "test": "bun run --filter='*' test",
+    "lint": "bunx oxlint@latest packages/",
+    "format": "bunx dprint fmt",
+    "clean": "rm -rf packages/*/dist node_modules"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "oxlint": "latest",
+    "dprint": "latest",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0"
+  }
+}
