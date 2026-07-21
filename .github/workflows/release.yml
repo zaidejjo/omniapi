@@ -1,0 +1,181 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+# ── Build the oma CLI/TUI binary across platforms ───────────
+jobs:
+  cli:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: oma-linux-x64
+          - os: windows-latest
+            artifact: oma-windows-x64.exe
+          - os: macos-latest
+            artifact: oma-macos-x64
+
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install
+
+      - name: Build oma binary
+        working-directory: packages/cli
+        run: bun build --compile ./bin/om.ts --outfile=${{ matrix.artifact }}
+
+      - name: Upload oma to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packages/cli/${{ matrix.artifact }}
+          draft: true
+          fail_on_unmatched: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Build Tauri desktop app across platforms ──────────────
+  desktop:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: actions-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install Linux system dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - run: bun install
+
+      - uses: tauri-apps/tauri-action@v2
+        id: tauri
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: packages/gui
+          tagName: ${{ github.ref_name }}
+          releaseName: OmniAPI ${{ github.ref_name }}
+          releaseDraft: true
+          releaseBody: |
+            ## OmniAPI ${{ github.ref_name }}
+
+            Download the appropriate asset for your platform below.
+
+            ### Desktop App
+            - **Linux**: `.deb`, `.AppImage`, or `.tar.gz`
+            - **Windows**: `.msi` or `.exe`
+            - **macOS**: `.dmg`
+
+            ### CLI / TUI
+            See the `oma-*` assets attached to this release.
+
+  # ── Publish Linux assets to AUR ───────────────────────────
+  aur-publish:
+    needs: [cli, desktop]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        pkg:
+          - name: omniapi-desktop-bin
+            artifact: 'OmniAPI_*_amd64.AppImage'
+          - name: omniapi-cli-bin
+            artifact: 'oma-linux-x64'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH for AUR
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download Linux artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ matrix.pkg.artifact }}" \
+            --dir /tmp/artifact
+
+      - name: Compute sha256sum
+        id: checksum
+        run: |
+          echo "sha256=$(sha256sum /tmp/artifact/* | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to AUR (${{ matrix.pkg.name }})
+        env:
+          PKG: ${{ matrix.pkg.name }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA256: ${{ steps.checksum.outputs.sha256 }}
+        run: |
+          set -eu
+
+          git config --global user.name "OmniAPI Bot"
+          git config --global user.email "actions@github.com"
+
+          # Clone AUR repo
+          git clone "ssh://aur@aur.archlinux.org/${PKG}.git" /tmp/aur
+          cd /tmp/aur
+
+          # Copy PKGBUILD template from workspace
+          cp "${GITHUB_WORKSPACE}/aur/${PKG}/PKGBUILD" ./PKGBUILD
+
+          # Replace placeholder repo URL with actual GitHub repository
+          sed -i "s|YOUR_GITHUB_USERNAME/omniapi|${{ github.repository }}|" ./PKGBUILD
+
+          # Update version field
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" ./PKGBUILD
+          # Reset pkgrel to 1 for a new version
+          sed -i "s/^pkgrel=.*/pkgrel=1/" ./PKGBUILD
+
+          # Update sha256sums with computed value
+          sed -i "s|^sha256sums=.*|sha256sums=('${SHA256}')|" ./PKGBUILD
+
+          # Generate .SRCINFO from the updated PKGBUILD
+          bash "${GITHUB_WORKSPACE}/aur/generate-srcinfo.sh" ./PKGBUILD
+
+          # Commit and push to AUR
+          git add PKGBUILD .SRCINFO
+          git commit -m "bump to ${VERSION}"
+          git push
