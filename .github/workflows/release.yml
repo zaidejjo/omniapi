@@ -4,10 +4,15 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 # ── Build the oma CLI/TUI binary across platforms ───────────
 jobs:
   cli:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -28,6 +33,10 @@ jobs:
 
       - run: bun install
 
+      # Must build @omniapi/core first so workspace dep resolves
+      - name: Build monorepo dependencies
+        run: bun run build:core
+
       - name: Build oma binary
         working-directory: packages/cli
         run: bun build --compile ./bin/om.ts --outfile=${{ matrix.artifact }}
@@ -37,13 +46,14 @@ jobs:
         with:
           files: packages/cli/${{ matrix.artifact }}
           draft: true
-          fail_on_unmatched: false
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ── Build Tauri desktop app across platforms ──────────────
   desktop:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -66,6 +76,10 @@ jobs:
         with:
           toolchain: stable
 
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "packages/gui/src-tauri -> target"
+
       - name: Install Linux system dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -78,7 +92,7 @@ jobs:
 
       - run: bun install
 
-      - uses: tauri-apps/tauri-action@v2
+      - uses: tauri-apps/tauri-action@v1
         id: tauri
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -108,6 +122,7 @@ jobs:
       contents: read
 
     strategy:
+      fail-fast: false
       matrix:
         pkg:
           - name: omniapi-desktop-bin
@@ -121,9 +136,22 @@ jobs:
       - name: Setup SSH for AUR
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+
+          # Write key to ~/.ssh/id_aur (matches local dev setup)
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_aur
+          chmod 600 ~/.ssh/id_aur
+
+          # Configure SSH to use id_aur specifically for AUR
+          cat >> ~/.ssh/config << 'EOF'
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/id_aur
+            User aur
+            StrictHostKeyChecking accept-new
+          EOF
+          chmod 600 ~/.ssh/config
+
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Extract version
         id: version
