@@ -74,11 +74,9 @@ jobs:
           bun run build:core
           bun run --cwd packages/gui build
 
-      # 👈 بنعمل البناء بنفسنا مباشرة عبر tauri build
       - name: Build Tauri App
         run: bun run --cwd packages/gui tauri build --bundles deb
 
-      # 👈 بنرفع ملف الـ deb المضمون المباشر للـ Release
       - name: Upload Desktop .deb to Release
         uses: softprops/action-gh-release@v2
         with:
@@ -86,7 +84,9 @@ jobs:
           draft: true
           fail_on_unmatched_files: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ── Publish Linux assets to AUR ───────────────────────────
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Publish Linux assets to AUR ───────────────────────────
   aur-publish:
     needs: [cli, desktop]
     runs-on: ubuntu-latest
@@ -143,6 +143,7 @@ jobs:
         run: |
           echo "sha256=$(sha256sum /tmp/artifact/* | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
+      # 👈 التعديل المهم هنا فقط (توليد .SRCINFO داخل حاوية Arch)
       - name: Publish to AUR (${{ matrix.pkg.name }})
         env:
           PKG: ${{ matrix.pkg.name }}
@@ -172,8 +173,12 @@ jobs:
           # Update sha256sums with computed value
           sed -i "s|^sha256sums=.*|sha256sums=('${SHA256}')|" ./PKGBUILD
 
-          # Generate .SRCINFO from the updated PKGBUILD
-          bash "${GITHUB_WORKSPACE}/aur/generate-srcinfo.sh" ./PKGBUILD
+          # Generate .SRCINFO via official archlinux container to ensure valid formatting
+          docker run --rm -v "$(pwd):/pkg" -w /pkg archlinux:base bash -c "
+            useradd -m builder && \
+            chown -R builder:builder /pkg && \
+            su builder -c 'makepkg --printsrcinfo' > /pkg/.SRCINFO
+          "
 
           # Commit and push to AUR
           git add PKGBUILD .SRCINFO
