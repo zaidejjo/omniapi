@@ -16,11 +16,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "targets": {
-      "linux": ["deb", "appimage", "tar.gz"],
-      "windows": ["msi", "nsis"],
-      "macos": ["dmg"]
-    }
+    "targets": ["deb", "appimage", "tar.gz", "msi", "nsis", "dmg"]
   },
   "app": {
     "windows": [
