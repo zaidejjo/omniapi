@@ -16,7 +16,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "targets": "all"
+    "targets": ["deb", "msi"] 
   },
   "app": {
     "windows": [

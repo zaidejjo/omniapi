@@ -8,21 +8,10 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
-# ── Build the oma CLI/TUI binary across platforms ───────────
+# ── Build the oma CLI/TUI binary for Linux ─────────────────
 jobs:
   cli:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            artifact: oma-linux-x64
-          - os: windows-latest
-            artifact: oma-windows-x64.exe
-          - os: macos-latest
-            artifact: oma-macos-x64
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -39,31 +28,20 @@ jobs:
 
       - name: Build oma binary
         working-directory: packages/cli
-        run: bun build --compile ./bin/om.ts --outfile=${{ matrix.artifact }}
+        run: bun build --compile ./bin/om.ts --outfile=oma-linux-x64
 
       - name: Upload oma to release
         uses: softprops/action-gh-release@v2
         with:
-          files: packages/cli/${{ matrix.artifact }}
+          files: packages/cli/oma-linux-x64
           draft: true
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ── Build Tauri desktop app across platforms ──────────────
+  # ── Build Tauri desktop app for Linux (.deb) ──────────────
   desktop:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-          - os: windows-latest
-            platform: windows
-          - os: macos-latest
-            platform: macos
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -81,7 +59,6 @@ jobs:
           workspaces: "packages/gui/src-tauri -> target"
 
       - name: Install Linux system dependencies
-        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -92,29 +69,24 @@ jobs:
 
       - run: bun install
 
-      - uses: tauri-apps/tauri-action@v1
-        id: tauri
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build monorepo dependencies & frontend
+        run: |
+          bun run build:core
+          bun run --cwd packages/gui build
+
+      # 👈 بنعمل البناء بنفسنا مباشرة عبر tauri build
+      - name: Build Tauri App
+        run: bun run --cwd packages/gui tauri build --bundles deb
+
+      # 👈 بنرفع ملف الـ deb المضمون المباشر للـ Release
+      - name: Upload Desktop .deb to Release
+        uses: softprops/action-gh-release@v2
         with:
-          projectPath: packages/gui
-          tagName: ${{ github.ref_name }}
-          releaseName: OmniAPI ${{ github.ref_name }}
-          releaseDraft: true
-          releaseBody: |
-            ## OmniAPI ${{ github.ref_name }}
-
-            Download the appropriate asset for your platform below.
-
-            ### Desktop App
-            - **Linux**: `.deb`, `.AppImage`, or `.tar.gz`
-            - **Windows**: `.msi` or `.exe`
-            - **macOS**: `.dmg`
-
-            ### CLI / TUI
-            See the `oma-*` assets attached to this release.
-
-  # ── Publish Linux assets to AUR ───────────────────────────
+          files: packages/gui/src-tauri/target/release/bundle/deb/*.deb
+          draft: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ── Publish Linux assets to AUR ───────────────────────────
   aur-publish:
     needs: [cli, desktop]
     runs-on: ubuntu-latest
@@ -126,7 +98,7 @@ jobs:
       matrix:
         pkg:
           - name: omniapi-desktop-bin
-            artifact: "omniapi_*_amd64.AppImage"
+            artifact: "omniapi_*_amd64.deb"
           - name: omniapi-cli-bin
             artifact: "oma-linux-x64"
 
