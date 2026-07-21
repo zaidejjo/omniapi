@@ -126,7 +126,7 @@ jobs:
       matrix:
         pkg:
           - name: omniapi-desktop-bin
-            artifact: "OmniAPI_*_amd64.AppImage"
+            artifact: "omniapi_*_amd64.AppImage"
           - name: omniapi-cli-bin
             artifact: "oma-linux-x64"
 
