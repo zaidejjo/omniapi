@@ -2,7 +2,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 # ── Build the oma CLI/TUI binary across platforms ───────────
 jobs:
@@ -62,7 +62,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - uses: actions-rust-toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
 
@@ -111,9 +111,9 @@ jobs:
       matrix:
         pkg:
           - name: omniapi-desktop-bin
-            artifact: 'OmniAPI_*_amd64.AppImage'
+            artifact: "OmniAPI_*_amd64.AppImage"
           - name: omniapi-cli-bin
-            artifact: 'oma-linux-x64'
+            artifact: "oma-linux-x64"
 
     steps:
       - uses: actions/checkout@v4
