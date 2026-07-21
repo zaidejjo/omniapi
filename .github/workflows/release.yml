@@ -180,6 +180,7 @@ jobs:
             su builder -c 'makepkg --printsrcinfo' > /pkg/.SRCINFO
           "
 
+          sudo chown -R $USER:$USER /tmp/aur
           # Commit and push to AUR
           git add PKGBUILD .SRCINFO
           git commit -m "bump to ${VERSION}"
